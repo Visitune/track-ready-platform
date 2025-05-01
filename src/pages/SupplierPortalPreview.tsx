@@ -1,11 +1,10 @@
-
 import React from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import { SupplierPortal } from "@/components/suppliers/SupplierPortal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Copy, Envelope } from "lucide-react";
+import { ArrowLeft, Copy, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 
 // Données d'exemple
@@ -112,7 +111,7 @@ export default function SupplierPortalPreview() {
               className="flex items-center gap-2"
               onClick={handleSendEmail}
             >
-              <Envelope className="h-4 w-4" />
+              <Mail className="h-4 w-4" />
               <span>Envoyer par email</span>
             </Button>
           </div>
