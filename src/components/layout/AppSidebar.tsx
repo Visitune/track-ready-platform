@@ -102,7 +102,7 @@ export function AppSidebar() {
                     }
                   >
                     {({ isActive }) => (
-                      <SidebarMenuButton asChild active={isActive}>
+                      <SidebarMenuButton asChild isActive={isActive}>
                         <div className="flex items-center gap-3">
                           <item.icon className="h-5 w-5" />
                           <span>{item.title}</span>
@@ -133,7 +133,7 @@ export function AppSidebar() {
                     }
                   >
                     {({ isActive }) => (
-                      <SidebarMenuButton asChild active={isActive}>
+                      <SidebarMenuButton asChild isActive={isActive}>
                         <div className="flex items-center gap-3">
                           <item.icon className="h-5 w-5" />
                           <span>{item.title}</span>
