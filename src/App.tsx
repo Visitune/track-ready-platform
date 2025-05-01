@@ -9,7 +9,10 @@ import Suppliers from "./pages/Suppliers";
 import Products from "./pages/Products";
 import Documents from "./pages/Documents";
 import Requirements from "./pages/Requirements";
+import RequirementGroups from "./pages/RequirementGroups";
+import SupplierPortalPreview from "./pages/SupplierPortalPreview";
 import Messages from "./pages/Messages";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,7 +29,10 @@ const App = () => (
           <Route path="/produits" element={<Products />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/exigences" element={<Requirements />} />
+          <Route path="/groupes-exigences" element={<RequirementGroups />} />
+          <Route path="/portail-fournisseur" element={<SupplierPortalPreview />} />
           <Route path="/messages" element={<Messages />} />
+          <Route path="/parametres" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

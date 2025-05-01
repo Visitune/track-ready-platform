@@ -22,6 +22,7 @@ import {
   MessageSquare,
   Settings,
   LogOut,
+  FolderTree,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -50,6 +51,11 @@ const mainItems = [
     title: "Exigences",
     icon: ClipboardCheck,
     path: "/exigences",
+  },
+  {
+    title: "Groupes d'exigences",
+    icon: FolderTree,
+    path: "/groupes-exigences",
   },
   {
     title: "Messages",
