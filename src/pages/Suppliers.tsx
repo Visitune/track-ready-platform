@@ -1,5 +1,6 @@
 
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,8 +28,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, MoreHorizontal, Filter } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Filter, Eye, Edit, Trash2, ExternalLink } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const suppliers = [
   {
@@ -106,11 +119,51 @@ const suppliers = [
 ];
 
 export default function Suppliers() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState("");
+  
+  // Filtrer les fournisseurs en fonction du terme de recherche
+  const filteredSuppliers = suppliers.filter(supplier =>
+    supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    supplier.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    supplier.type.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  // Naviguer vers la page de détail d'un fournisseur
+  const handleViewDetails = (id: number) => {
+    navigate(`/fournisseurs/${id}`);
+  };
+  
+  // Naviguer vers la page d'édition d'un fournisseur
+  const handleEdit = (id: number) => {
+    navigate(`/fournisseurs/${id}`);
+  };
+  
+  // Naviguer vers le portail fournisseur
+  const handleViewPortal = (id: number) => {
+    navigate("/portail-fournisseur");
+  };
+  
+  // Supprimer un fournisseur
+  const handleDelete = (id: number, name: string) => {
+    toast({
+      title: "Fournisseur supprimé",
+      description: `Le fournisseur ${name} a été supprimé.`,
+      variant: "destructive",
+    });
+  };
+  
+  // Naviguer vers le formulaire de création d'un nouveau fournisseur
+  const handleNewSupplier = () => {
+    navigate("/fournisseurs/nouveau");
+  };
+
   return (
     <AppLayout>
       <div className="flex items-center justify-between mb-6">
         <h1 className="dashboard-title">Fournisseurs</h1>
-        <Button className="flex items-center gap-2">
+        <Button className="flex items-center gap-2" onClick={handleNewSupplier}>
           <Plus className="h-4 w-4" />
           <span>Nouveau fournisseur</span>
         </Button>
@@ -131,6 +184,8 @@ export default function Suppliers() {
                 type="search"
                 placeholder="Rechercher un fournisseur..."
                 className="w-full pl-8 md:max-w-md bg-background"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <Button variant="outline" className="flex items-center gap-2">
@@ -153,7 +208,7 @@ export default function Suppliers() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {suppliers.map((supplier) => (
+                {filteredSuppliers.map((supplier) => (
                   <TableRow key={supplier.id}>
                     <TableCell className="font-medium">{supplier.name}</TableCell>
                     <TableCell>{supplier.type}</TableCell>
@@ -199,19 +254,58 @@ export default function Suppliers() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>Voir détails</DropdownMenuItem>
-                          <DropdownMenuItem>Voir documents</DropdownMenuItem>
-                          <DropdownMenuItem>Voir exigences</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem>Modifier</DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
-                            Supprimer
+                          <DropdownMenuItem onClick={() => handleViewDetails(supplier.id)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Voir détails
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(supplier.id)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewPortal(supplier.id)}>
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            Portail fournisseur
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Supprimer
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Cette action ne peut pas être annulée. Cela supprimera définitivement le fournisseur
+                                  <span className="font-semibold"> {supplier.name}</span> et toutes les données associées.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => handleDelete(supplier.id, supplier.name)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Supprimer
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
+                
+                {filteredSuppliers.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">
+                      Aucun résultat trouvé.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>

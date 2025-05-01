@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useState } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import { SupplierPortal } from "@/components/suppliers/SupplierPortal";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Copy, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 // Données d'exemple
 const requirements = [
@@ -53,6 +65,16 @@ const requirements = [
 
 export default function SupplierPortalPreview() {
   const { toast } = useToast();
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [emailData, setEmailData] = useState({
+    to: "f.schmidt@ecopack.de",
+    subject: "Accès au portail fournisseur",
+    message: "Bonjour,\n\nVeuillez trouver ci-dessous le lien d'accès à notre portail fournisseur pour gérer vos documents et certifications.\n\nMerci de votre collaboration,\nL'équipe qualité",
+  });
+
+  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
+  const [selectedRequirement, setSelectedRequirement] = useState<number | null>(null);
+  const [messageText, setMessageText] = useState("");
 
   const handleFileUpload = (requirementId: number, file: File) => {
     toast({
@@ -62,10 +84,28 @@ export default function SupplierPortalPreview() {
   };
 
   const handleSendMessage = (requirementId: number, message: string) => {
+    setSelectedRequirement(requirementId);
+    setMessageDialogOpen(true);
+  };
+
+  const handleMessageSubmit = () => {
+    if (!messageText.trim()) {
+      toast({
+        title: "Message vide",
+        description: "Veuillez saisir un message avant d'envoyer.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     toast({
-      title: "Messagerie ouverte",
-      description: `Envoi d'un message pour l'exigence #${requirementId}`,
+      title: "Message envoyé",
+      description: `Votre message concernant l'exigence #${selectedRequirement} a été envoyé.`,
     });
+    
+    setMessageDialogOpen(false);
+    setMessageText("");
+    setSelectedRequirement(null);
   };
 
   const handleCopyLink = () => {
@@ -77,10 +117,15 @@ export default function SupplierPortalPreview() {
   };
 
   const handleSendEmail = () => {
+    setShowEmailDialog(true);
+  };
+  
+  const handleEmailSubmit = () => {
     toast({
       title: "Email envoyé",
-      description: "Un email a été envoyé au fournisseur avec le lien d'accès au portail.",
+      description: `Un email a été envoyé à ${emailData.to} avec le lien d'accès au portail.`,
     });
+    setShowEmailDialog(false);
   };
 
   return (
@@ -148,6 +193,98 @@ export default function SupplierPortalPreview() {
           />
         </div>
       </div>
+      
+      {/* Dialog pour envoyer un message */}
+      <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Envoyer un message</DialogTitle>
+            <DialogDescription>
+              Envoyez un message concernant cette exigence au fournisseur.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="requirement">Exigence</Label>
+              <div className="p-2 bg-muted rounded-md">
+                {requirements.find(r => r.id === selectedRequirement)?.documentName || ""}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="message">Message</Label>
+              <Textarea
+                id="message"
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                placeholder="Saisissez votre message..."
+                rows={6}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMessageDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleMessageSubmit}>
+              Envoyer le message
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Dialog pour envoyer un email */}
+      <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Envoyer le lien par email</DialogTitle>
+            <DialogDescription>
+              Envoyez le lien d'accès au portail fournisseur par email.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="to">Destinataire</Label>
+              <Input
+                id="to"
+                value={emailData.to}
+                onChange={(e) => setEmailData({...emailData, to: e.target.value})}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="subject">Sujet</Label>
+              <Input
+                id="subject"
+                value={emailData.subject}
+                onChange={(e) => setEmailData({...emailData, subject: e.target.value})}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="emailMessage">Message</Label>
+              <Textarea
+                id="emailMessage"
+                value={emailData.message}
+                onChange={(e) => setEmailData({...emailData, message: e.target.value})}
+                rows={6}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEmailDialog(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleEmailSubmit}>
+              Envoyer l'email
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
