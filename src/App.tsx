@@ -9,7 +9,10 @@ import Suppliers from "./pages/Suppliers";
 import SupplierDetail from "./pages/SupplierDetail";
 import NewSupplier from "./pages/NewSupplier";
 import Products from "./pages/Products";
+import ProductDetail from "./pages/ProductDetail";
+import NewProduct from "./pages/NewProduct";
 import Documents from "./pages/Documents";
+import NewDocument from "./pages/NewDocument";
 import Requirements from "./pages/Requirements";
 import RequirementGroups from "./pages/RequirementGroups";
 import SupplierPortalPreview from "./pages/SupplierPortalPreview";
@@ -31,7 +34,10 @@ const App = () => (
           <Route path="/fournisseurs/nouveau" element={<NewSupplier />} />
           <Route path="/fournisseurs/:id" element={<SupplierDetail />} />
           <Route path="/produits" element={<Products />} />
+          <Route path="/produits/nouveau" element={<NewProduct />} />
+          <Route path="/produits/:id" element={<ProductDetail />} />
           <Route path="/documents" element={<Documents />} />
+          <Route path="/documents/nouveau" element={<NewDocument />} />
           <Route path="/exigences" element={<Requirements />} />
           <Route path="/groupes-exigences" element={<RequirementGroups />} />
           <Route path="/portail-fournisseur" element={<SupplierPortalPreview />} />

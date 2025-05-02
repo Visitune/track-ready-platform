@@ -1,5 +1,6 @@
 
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +28,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, MoreHorizontal, Filter } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Filter, Eye, Edit, Trash2, FileText } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { DeleteConfirmationDialog } from "@/components/common/DeleteConfirmationDialog";
 
 const products = [
   {
@@ -105,11 +108,52 @@ const products = [
 ];
 
 export default function Products() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState("");
+  
+  // Filtrer les produits en fonction du terme de recherche
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.type.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Naviguer vers la page de détail d'un produit
+  const handleViewDetails = (id: number) => {
+    navigate(`/produits/${id}`);
+  };
+  
+  // Naviguer vers la page d'édition d'un produit
+  const handleEdit = (id: number) => {
+    navigate(`/produits/${id}`);
+  };
+  
+  // Naviguer vers la page des documents d'un produit
+  const handleViewDocuments = (id: number) => {
+    navigate(`/produits/${id}`, { state: { tab: 'documents' } });
+  };
+  
+  // Supprimer un produit
+  const handleDelete = (id: number, name: string) => {
+    toast({
+      title: "Produit supprimé",
+      description: `Le produit ${name} a été supprimé.`,
+      variant: "destructive",
+    });
+  };
+  
+  // Naviguer vers le formulaire de création d'un nouveau produit
+  const handleNewProduct = () => {
+    navigate("/produits/nouveau");
+  };
+
   return (
     <AppLayout>
       <div className="flex items-center justify-between mb-6">
         <h1 className="dashboard-title">Produits</h1>
-        <Button className="flex items-center gap-2">
+        <Button className="flex items-center gap-2" onClick={handleNewProduct}>
           <Plus className="h-4 w-4" />
           <span>Nouveau produit</span>
         </Button>
@@ -130,6 +174,8 @@ export default function Products() {
                 type="search"
                 placeholder="Rechercher un produit..."
                 className="w-full pl-8 md:max-w-md bg-background"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <Button variant="outline" className="flex items-center gap-2">
@@ -152,7 +198,7 @@ export default function Products() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.map((product) => (
+                {filteredProducts.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>{product.code}</TableCell>
@@ -171,19 +217,48 @@ export default function Products() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>Voir détails</DropdownMenuItem>
-                          <DropdownMenuItem>Voir fournisseurs</DropdownMenuItem>
-                          <DropdownMenuItem>Voir documents</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem>Modifier</DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
-                            Supprimer
+                          <DropdownMenuItem onClick={() => handleViewDetails(product.id)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Voir détails
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(product.id)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewDocuments(product.id)}>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Voir documents
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DeleteConfirmationDialog
+                            title="Supprimer ce produit ?"
+                            description="Cette action ne peut pas être annulée. Cela supprimera définitivement ce produit et toutes les données associées."
+                            itemName={product.name}
+                            onConfirm={() => handleDelete(product.id, product.name)}
+                            triggerButtonText="Supprimer"
+                            triggerButtonProps={{ 
+                              className: "w-full justify-start font-normal text-sm px-2 py-1.5 text-red-600", 
+                              variant: "ghost" 
+                            }}
+                          >
+                            <div className="flex items-center text-red-600">
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Supprimer
+                            </div>
+                          </DeleteConfirmationDialog>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
+                
+                {filteredProducts.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">
+                      Aucun résultat trouvé.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>

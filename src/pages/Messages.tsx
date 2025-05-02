@@ -1,20 +1,39 @@
 
-import React from "react";
+import React, { useState } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search } from "lucide-react";
+import { Search, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import ConversationView from "@/components/messages/ConversationView";
+
+// Données d'exemple pour les fournisseurs
+const suppliers = [
+  { id: 1, name: "Fournitures Pro SAS", email: "contact@fournitures-pro.fr" },
+  { id: 2, name: "EcoPack GmbH", email: "info@ecopack.de" },
+  { id: 3, name: "Matières Premières Inc.", email: "info@matieres-premieres.ca" },
+  { id: 4, name: "FoodTech Solutions", email: "contact@foodtechsolutions.com" },
+];
 
 const conversations = [
   {
@@ -25,6 +44,40 @@ const conversations = [
     date: new Date(2024, 5, 15, 14, 25),
     unread: false,
     avatar: "FP",
+    messages: [
+      {
+        id: 1,
+        sender: "system",
+        content: "Conversation initiée concernant: Certification ISO 9001",
+        timestamp: new Date(2024, 5, 14, 9, 0),
+      },
+      {
+        id: 2,
+        sender: "client",
+        content:
+          "Bonjour, nous avons besoin de votre certification ISO 9001 mise à jour. Pouvez-vous nous la transmettre ?",
+        timestamp: new Date(2024, 5, 14, 9, 5),
+        name: "Sophie Martin",
+      },
+      {
+        id: 3,
+        sender: "supplier",
+        content:
+          "Bonjour Sophie, bien sûr. Je vais préparer le document et vous l'envoyer dans la journée.",
+        timestamp: new Date(2024, 5, 14, 10, 30),
+        name: "Jean Dupont",
+      },
+      {
+        id: 4,
+        sender: "supplier",
+        content:
+          "Voici la certification demandée. N'hésitez pas si vous avez besoin d'autres documents.",
+        timestamp: new Date(2024, 5, 15, 14, 25),
+        name: "Jean Dupont",
+        attachment: "ISO_9001_2024.pdf",
+      },
+    ],
+    subject: "Certification ISO 9001",
   },
   {
     id: 2,
@@ -35,6 +88,29 @@ const conversations = [
     date: new Date(2024, 5, 15, 10, 12),
     unread: true,
     avatar: "EG",
+    messages: [
+      {
+        id: 1,
+        sender: "system",
+        content: "Conversation initiée concernant: Documentation RPET",
+        timestamp: new Date(2024, 5, 15, 9, 0),
+      },
+      {
+        id: 2,
+        sender: "client",
+        content: "Bonjour, pourriez-vous nous envoyer la documentation complète sur les bouchons RPET ?",
+        timestamp: new Date(2024, 5, 15, 9, 15),
+        name: "Paul Durand",
+      },
+      {
+        id: 3,
+        sender: "supplier",
+        content: "Pouvez-vous préciser quelle version du document vous avez besoin ?",
+        timestamp: new Date(2024, 5, 15, 10, 12),
+        name: "Klaus Meyer",
+      },
+    ],
+    subject: "Documentation RPET",
   },
   {
     id: 3,
@@ -45,67 +121,159 @@ const conversations = [
     date: new Date(2024, 5, 14, 16, 30),
     unread: false,
     avatar: "MP",
-  },
-  {
-    id: 4,
-    supplier: "FoodTech Solutions",
-    contact: "Michael Brown",
-    lastMessage: "Nous travaillons à mettre à jour notre déclaration REACH.",
-    date: new Date(2024, 5, 14, 11, 45),
-    unread: true,
-    avatar: "FT",
-  },
-  {
-    id: 5,
-    supplier: "Organic Supplies Ltd",
-    contact: "Emma Wilson",
-    lastMessage: "Merci pour votre rappel, le document est en préparation.",
-    date: new Date(2024, 5, 13, 9, 20),
-    unread: false,
-    avatar: "OS",
-  },
-];
-
-// Sample messages for the first conversation
-const messages = [
-  {
-    id: 1,
-    sender: "system",
-    content: "Conversation initiée concernant: Certification ISO 9001",
-    timestamp: new Date(2024, 5, 14, 9, 0),
-  },
-  {
-    id: 2,
-    sender: "client",
-    content:
-      "Bonjour, nous avons besoin de votre certification ISO 9001 mise à jour. Pouvez-vous nous la transmettre ?",
-    timestamp: new Date(2024, 5, 14, 9, 5),
-    name: "Sophie Martin",
-  },
-  {
-    id: 3,
-    sender: "supplier",
-    content:
-      "Bonjour Sophie, bien sûr. Je vais préparer le document et vous l'envoyer dans la journée.",
-    timestamp: new Date(2024, 5, 14, 10, 30),
-    name: "Jean Dupont",
-  },
-  {
-    id: 4,
-    sender: "supplier",
-    content:
-      "Voici la certification demandée. N'hésitez pas si vous avez besoin d'autres documents.",
-    timestamp: new Date(2024, 5, 15, 14, 25),
-    name: "Jean Dupont",
-    attachment: "ISO_9001_2024.pdf",
+    messages: [
+      {
+        id: 1,
+        sender: "system",
+        content: "Conversation initiée concernant: Certificat d'analyse",
+        timestamp: new Date(2024, 5, 14, 15, 0),
+      },
+      {
+        id: 2,
+        sender: "client",
+        content: "Bonjour, quand pouvons-nous espérer recevoir le certificat d'analyse du lot #456789 ?",
+        timestamp: new Date(2024, 5, 14, 15, 30),
+        name: "Sophie Martin",
+      },
+      {
+        id: 3,
+        sender: "supplier",
+        content: "Le certificat d'analyse sera disponible la semaine prochaine.",
+        timestamp: new Date(2024, 5, 14, 16, 30),
+        name: "Sarah Johnson",
+      },
+    ],
+    subject: "Certificat d'analyse",
   },
 ];
 
 export default function Messages() {
+  const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeConversation, setActiveConversation] = useState(conversations[0]);
+  const [newMessageDialog, setNewMessageDialog] = useState(false);
+  const [newMessageForm, setNewMessageForm] = useState({
+    supplierId: "",
+    subject: "",
+    message: "",
+  });
+  
+  // Filtrer les conversations en fonction du terme de recherche
+  const filteredConversations = conversations.filter(conversation =>
+    conversation.supplier.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    conversation.lastMessage.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    conversation.contact.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  // Gérer l'archivage d'une conversation
+  const handleArchiveConversation = (id: number) => {
+    toast({
+      title: "Conversation archivée",
+      description: "Cette conversation a été déplacée dans les archives.",
+    });
+  };
+  
+  // Gérer l'envoi d'un nouveau message
+  const handleNewMessage = () => {
+    if (!newMessageForm.supplierId || !newMessageForm.subject || !newMessageForm.message) {
+      toast({
+        title: "Formulaire incomplet",
+        description: "Veuillez remplir tous les champs du formulaire.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const supplier = suppliers.find(s => s.id.toString() === newMessageForm.supplierId);
+    if (!supplier) return;
+    
+    toast({
+      title: "Message envoyé",
+      description: `Votre message a été envoyé à ${supplier.name}.`,
+    });
+    
+    setNewMessageDialog(false);
+    setNewMessageForm({
+      supplierId: "",
+      subject: "",
+      message: "",
+    });
+  };
+  
+  // Gérer les changements dans le formulaire de nouveau message
+  const handleFormChange = (field: string, value: string) => {
+    setNewMessageForm(prev => ({ ...prev, [field]: value }));
+  };
+
   return (
     <AppLayout>
       <div className="flex items-center justify-between mb-6">
         <h1 className="dashboard-title">Messages</h1>
+        
+        <Dialog open={newMessageDialog} onOpenChange={setNewMessageDialog}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              <span>Nouveau message</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Nouveau message</DialogTitle>
+              <DialogDescription>
+                Envoyer un nouveau message à un fournisseur
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Destinataire
+                </label>
+                <Select 
+                  value={newMessageForm.supplierId} 
+                  onValueChange={(value) => handleFormChange("supplierId", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un fournisseur" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {suppliers.map((supplier) => (
+                      <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                        {supplier.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Sujet
+                </label>
+                <Input 
+                  value={newMessageForm.subject}
+                  onChange={(e) => handleFormChange("subject", e.target.value)}
+                  placeholder="Sujet du message"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Message
+                </label>
+                <Textarea 
+                  value={newMessageForm.message}
+                  onChange={(e) => handleFormChange("message", e.target.value)}
+                  placeholder="Saisissez votre message..."
+                  rows={4}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={handleNewMessage}>Envoyer</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Tabs defaultValue="inbox" className="w-full">
@@ -116,7 +284,7 @@ export default function Messages() {
         </TabsList>
         
         <TabsContent value="inbox" className="space-y-4">
-          <div className="flex">
+          <div className="flex h-[600px]">
             <div className="w-1/3 pr-4 border-r">
               <div className="relative mb-4">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -124,18 +292,21 @@ export default function Messages() {
                   type="search"
                   placeholder="Rechercher une conversation..."
                   className="w-full pl-8 bg-background"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
 
-              <div className="space-y-2">
-                {conversations.map((conversation) => (
+              <div className="space-y-2 overflow-y-auto h-[540px]">
+                {filteredConversations.map((conversation) => (
                   <div
                     key={conversation.id}
                     className={`p-3 rounded-lg cursor-pointer ${
-                      conversation.id === 1
+                      conversation.id === activeConversation.id
                         ? "bg-primary/10 border border-primary/20"
                         : "hover:bg-muted"
                     }`}
+                    onClick={() => setActiveConversation(conversation)}
                   >
                     <div className="flex items-start gap-3">
                       <Avatar>
@@ -170,90 +341,22 @@ export default function Messages() {
                     </div>
                   </div>
                 ))}
+                
+                {filteredConversations.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Aucune conversation trouvée.
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="w-2/3 pl-4">
-              <Card>
-                <CardHeader className="border-b">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-base">
-                        Fournitures Pro SAS
-                      </CardTitle>
-                      <CardDescription>
-                        Sujet: Certification ISO 9001
-                      </CardDescription>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      Archiver
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="flex flex-col h-[400px]">
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                      {messages.map((message) => {
-                        if (message.sender === "system") {
-                          return (
-                            <div
-                              key={message.id}
-                              className="text-center text-xs text-muted-foreground py-2"
-                            >
-                              {message.content}
-                              <div>
-                                {format(message.timestamp, "dd/MM/yyyy HH:mm")}
-                              </div>
-                            </div>
-                          );
-                        }
-
-                        const isClient = message.sender === "client";
-
-                        return (
-                          <div
-                            key={message.id}
-                            className={`flex ${
-                              isClient ? "justify-end" : "justify-start"
-                            }`}
-                          >
-                            <div
-                              className={`max-w-[80%] ${
-                                isClient
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-muted"
-                              } rounded-lg p-3`}
-                            >
-                              <div className="text-xs font-medium mb-1">
-                                {message.name}
-                              </div>
-                              <div>{message.content}</div>
-                              {message.attachment && (
-                                <div className="mt-2 bg-white/10 rounded p-2 flex items-center gap-2">
-                                  <FileText className="h-4 w-4" />
-                                  <span className="text-sm">
-                                    {message.attachment}
-                                  </span>
-                                </div>
-                              )}
-                              <div className="text-xs mt-1 text-right opacity-70">
-                                {format(message.timestamp, "HH:mm")}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="border-t p-4">
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Écrivez votre message..."
-                          className="flex-1"
-                        />
-                        <Button>Envoyer</Button>
-                      </div>
-                    </div>
-                  </div>
+              <Card className="h-full">
+                <CardContent className="p-0 h-full">
+                  <ConversationView
+                    conversation={activeConversation}
+                    onArchive={handleArchiveConversation}
+                  />
                 </CardContent>
               </Card>
             </div>
@@ -283,6 +386,3 @@ export default function Messages() {
     </AppLayout>
   );
 }
-
-// Import missing icon
-import { FileText } from "lucide-react";
