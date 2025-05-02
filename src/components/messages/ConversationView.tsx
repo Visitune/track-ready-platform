@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import MessageComposer from "./MessageComposer";
 import { useToast } from "@/hooks/use-toast";
 
-interface Message {
+export interface Message {
   id: number;
   content: string;
   sender: "system" | "client" | "supplier";

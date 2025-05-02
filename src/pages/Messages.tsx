@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import {
@@ -27,6 +26,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import ConversationView from "@/components/messages/ConversationView";
 
+// Définition du type Message pour correspondre à l'interface dans ConversationView
+interface Message {
+  id: number;
+  content: string;
+  sender: "system" | "client" | "supplier";
+  name?: string;
+  timestamp: Date;
+  attachment?: string;
+}
+
 // Données d'exemple pour les fournisseurs
 const suppliers = [
   { id: 1, name: "Fournitures Pro SAS", email: "contact@fournitures-pro.fr" },
@@ -44,16 +53,17 @@ const conversations = [
     date: new Date(2024, 5, 15, 14, 25),
     unread: false,
     avatar: "FP",
+    subject: "Certification ISO 9001",
     messages: [
       {
         id: 1,
-        sender: "system",
+        sender: "system" as const,
         content: "Conversation initiée concernant: Certification ISO 9001",
         timestamp: new Date(2024, 5, 14, 9, 0),
       },
       {
         id: 2,
-        sender: "client",
+        sender: "client" as const,
         content:
           "Bonjour, nous avons besoin de votre certification ISO 9001 mise à jour. Pouvez-vous nous la transmettre ?",
         timestamp: new Date(2024, 5, 14, 9, 5),
@@ -61,7 +71,7 @@ const conversations = [
       },
       {
         id: 3,
-        sender: "supplier",
+        sender: "supplier" as const,
         content:
           "Bonjour Sophie, bien sûr. Je vais préparer le document et vous l'envoyer dans la journée.",
         timestamp: new Date(2024, 5, 14, 10, 30),
@@ -69,7 +79,7 @@ const conversations = [
       },
       {
         id: 4,
-        sender: "supplier",
+        sender: "supplier" as const,
         content:
           "Voici la certification demandée. N'hésitez pas si vous avez besoin d'autres documents.",
         timestamp: new Date(2024, 5, 15, 14, 25),
@@ -77,7 +87,6 @@ const conversations = [
         attachment: "ISO_9001_2024.pdf",
       },
     ],
-    subject: "Certification ISO 9001",
   },
   {
     id: 2,
@@ -88,29 +97,29 @@ const conversations = [
     date: new Date(2024, 5, 15, 10, 12),
     unread: true,
     avatar: "EG",
+    subject: "Documentation RPET",
     messages: [
       {
         id: 1,
-        sender: "system",
+        sender: "system" as const,
         content: "Conversation initiée concernant: Documentation RPET",
         timestamp: new Date(2024, 5, 15, 9, 0),
       },
       {
         id: 2,
-        sender: "client",
+        sender: "client" as const,
         content: "Bonjour, pourriez-vous nous envoyer la documentation complète sur les bouchons RPET ?",
         timestamp: new Date(2024, 5, 15, 9, 15),
         name: "Paul Durand",
       },
       {
         id: 3,
-        sender: "supplier",
+        sender: "supplier" as const,
         content: "Pouvez-vous préciser quelle version du document vous avez besoin ?",
         timestamp: new Date(2024, 5, 15, 10, 12),
         name: "Klaus Meyer",
       },
     ],
-    subject: "Documentation RPET",
   },
   {
     id: 3,
@@ -121,29 +130,29 @@ const conversations = [
     date: new Date(2024, 5, 14, 16, 30),
     unread: false,
     avatar: "MP",
+    subject: "Certificat d'analyse",
     messages: [
       {
         id: 1,
-        sender: "system",
+        sender: "system" as const,
         content: "Conversation initiée concernant: Certificat d'analyse",
         timestamp: new Date(2024, 5, 14, 15, 0),
       },
       {
         id: 2,
-        sender: "client",
+        sender: "client" as const,
         content: "Bonjour, quand pouvons-nous espérer recevoir le certificat d'analyse du lot #456789 ?",
         timestamp: new Date(2024, 5, 14, 15, 30),
         name: "Sophie Martin",
       },
       {
         id: 3,
-        sender: "supplier",
+        sender: "supplier" as const,
         content: "Le certificat d'analyse sera disponible la semaine prochaine.",
         timestamp: new Date(2024, 5, 14, 16, 30),
         name: "Sarah Johnson",
       },
     ],
-    subject: "Certificat d'analyse",
   },
 ];
 
